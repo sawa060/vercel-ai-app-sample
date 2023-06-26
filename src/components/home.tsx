@@ -2,6 +2,7 @@ import Image from 'next/image';
 import {Inter} from 'next/font/google';
 import {useEffect, useId, useState} from 'react';
 import {useCompletion} from 'ai/react';
+import {BaseInput} from 'src/parts/input';
 
 const inter = Inter({subsets: ['latin']});
 
@@ -54,7 +55,7 @@ export const Top = () => {
         </div>
         <div className="pb-4">
           <label>Select language: </label>
-          <select value={lang} onChange={handleChangeLang}>
+          <select value={lang} onChange={handleChangeLang} className="text-black w-40">
             <option value="English">English</option>
             <option value="Vietnamese">Vietnamese</option>
           </select>
@@ -65,10 +66,8 @@ export const Top = () => {
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="japaneseId">
                 日本語
               </label>
-              <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              <BaseInput
                 id={japaneseId}
-                type="text"
                 value={jaValue}
                 onChange={(e) => setJaValue(e.target.value)}
               />
@@ -77,10 +76,8 @@ export const Top = () => {
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="englishId">
                 English
               </label>
-              <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              <BaseInput
                 id={englishId}
-                type="text"
                 value={enValue}
                 onChange={(e) => setEnValue(e.target.value)}
               />
@@ -89,10 +86,8 @@ export const Top = () => {
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="vietnameseId">
                 Vietnamese
               </label>
-              <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              <BaseInput
                 id={vietnameseId}
-                type="text"
                 value={viValue}
                 onChange={(e) => setViValue(e.target.value)}
               />
