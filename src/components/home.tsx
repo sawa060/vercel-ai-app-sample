@@ -1,35 +1,58 @@
 import Image from 'next/image';
 import {Inter} from 'next/font/google';
-import {useEffect, useId, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {useCompletion} from 'ai/react';
 import {BaseInput} from 'src/parts/input';
 
 const inter = Inter({subsets: ['latin']});
 
+interface Languages {
+  ja: string;
+  en: string;
+  vi: string;
+}
+
+function convertStringToArray(str: string): string[] | [] {
+  try {
+    console.log('str =>', str);
+    return JSON.parse(str);
+  } catch (error: any) {
+    console.error(`エラーが発生しました: ${error.message}`);
+    return [];
+  }
+}
+
 export const Top = () => {
-  const japaneseId = useId();
-  const englishId = useId();
-  const vietnameseId = useId();
+  const [langArr, setLangArr] = useState<Languages[]>([
+    {
+      ja: '',
+      en: '',
+      vi: '',
+    },
+  ]);
 
   const [lang, setLang] = useState('English');
-  const [jaValue, setJaValue] = useState('');
-  const [enValue, setEnValue] = useState('');
-  const [viValue, setViValue] = useState('');
 
-  const {completion, complete, isLoading} = useCompletion({
-    onResponse: (_res) => {
-      setEnValue(completion);
+  const {complete, isLoading} = useCompletion({
+    onFinish: (prompt, completion) => {
+      console.log('prompt =>', prompt);
+      console.log('completion =>', completion);
+      const arrCompletion = convertStringToArray(completion);
+      const newArr = [...langArr];
+      if (lang === 'English') {
+        newArr.forEach((lang, index) => {
+          newArr[index].en = arrCompletion[index];
+        });
+        setLangArr(newArr);
+      }
+      if (lang === 'Vietnamese') {
+        newArr.forEach((lang, index) => {
+          newArr[index].vi = arrCompletion[index];
+        });
+        setLangArr(newArr);
+      }
     },
   });
-
-  useEffect(() => {
-    if (lang === 'English') {
-      setEnValue(completion);
-    }
-    if (lang === 'Vietnamese') {
-      setViValue(completion);
-    }
-  }, [completion]);
 
   function handleChangeLang(e: React.ChangeEvent<HTMLSelectElement>) {
     setLang(e.target.value);
@@ -38,11 +61,33 @@ export const Top = () => {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const prompt = `Please translate the following words into ${lang}.
+    const jaWords = langArr.map((lang) => lang.ja).join(',');
 
-    「${jaValue}」`;
+    const prompt = `Please translate the following comma-separated words into ${lang}. Please return their values in the  array format.
+    Absolutely no other information is needed.
+
+    [${jaWords}]`;
 
     complete(prompt);
+  }
+
+  function addRow(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    e.preventDefault();
+    const newArr = [...langArr];
+    newArr.push({
+      ja: '',
+      en: '',
+      vi: '',
+    });
+
+    setLangArr(newArr);
+  }
+
+  function removeRow(index: number) {
+    const newArr = [...langArr];
+    newArr.splice(index, 1);
+
+    setLangArr(newArr);
   }
 
   return (
@@ -61,37 +106,63 @@ export const Top = () => {
           </select>
         </div>
         <form onSubmit={handleSubmit}>
-          <div className="flex gap-4 pb-4">
-            <div>
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="japaneseId">
-                日本語
-              </label>
-              <BaseInput
-                id={japaneseId}
-                value={jaValue}
-                onChange={(e) => setJaValue(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="englishId">
-                English
-              </label>
-              <BaseInput
-                id={englishId}
-                value={enValue}
-                onChange={(e) => setEnValue(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="vietnameseId">
-                Vietnamese
-              </label>
-              <BaseInput
-                id={vietnameseId}
-                value={viValue}
-                onChange={(e) => setViValue(e.target.value)}
-              />
-            </div>
+          <div>
+            {langArr.map((lang, index) => (
+              <div className="flex gap-4 pb-4 items-end" key={index}>
+                <div>
+                  <label className="block text-gray-700 text-sm font-bold mb-2">日本語</label>
+                  <BaseInput
+                    value={langArr[index].ja}
+                    onChange={(e) => {
+                      const newArr = [...langArr];
+                      newArr[index].ja = e.target.value;
+
+                      setLangArr(newArr);
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 text-sm font-bold mb-2">English</label>
+                  <BaseInput
+                    value={langArr[index].en}
+                    onChange={(e) => {
+                      const newArr = [...langArr];
+                      newArr[index].en = e.target.value;
+
+                      setLangArr(newArr);
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 text-sm font-bold mb-2">Vietnamese</label>
+                  <BaseInput
+                    value={langArr[index].vi}
+                    onChange={(e) => {
+                      const newArr = [...langArr];
+                      newArr[index].vi = e.target.value;
+
+                      setLangArr(newArr);
+                    }}
+                  />
+                </div>
+                <button
+                  className="bg-red-500 hover:bg-red-700 text-white  py-2 px-4 rounded-full h-10"
+                  onClick={() => removeRow(index)}
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-center gap-4 items-center">
+            <button
+              onClick={addRow}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+              type="button"
+            >
+              ＋ add
+            </button>
           </div>
           <div className="flex justify-end gap-4  items-center">
             {isLoading ? (
